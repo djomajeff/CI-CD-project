@@ -154,8 +154,7 @@ jobs:
       - checkout
       - run:
           name: Install tar and gzip
-          command: |
-            sudo apt install tar gzip
+          command: yum install -y tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -204,6 +203,7 @@ jobs:
             sudo apt install software-properties-common && \
             sudo add-apt-repository --yes --update ppa:ansible/ansible
             sudo apt install ansible
+            sudo apt install tar gzip awscli
       - run:
           name: Configure server
           command: |
