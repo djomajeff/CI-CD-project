@@ -181,11 +181,10 @@ jobs:
               --output text)
             echo "Public IP: $BACKEND_IP"
             echo "$BACKEND_IP" >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt > ~/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - inventory.txt
+            - .circleci/ansible/inventory.txt
 
   configure-infrastructure:
     docker:
@@ -208,7 +207,7 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cd .circleci/ansible
+            cd ~/.circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
       # - destroy_environment dont forget to pass argument
       # Here's where you will add some code to rollback on failure
