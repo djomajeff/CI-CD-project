@@ -37,7 +37,6 @@ orbs:
 
 jobs:
   build-frontend:
-    context: slack-secrets
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -61,7 +60,6 @@ jobs:
           key: frontend-build
 
   build-backend:
-    context: slack-secrets
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -79,7 +77,6 @@ jobs:
           key: backend-build
 
   test-frontend:
-    context: slack-secrets
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -94,7 +91,6 @@ jobs:
             npm run test
 
   test-backend:
-    context: slack-secrets
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -109,7 +105,6 @@ jobs:
             npm run test
 
   scan-frontend:
-    context: slack-secrets
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -128,7 +123,6 @@ jobs:
           template: basic_fail_1
 
   scan-backend:
-    context: slack-secrets
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -314,15 +308,21 @@ cleanup:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
+      - build-frontend:
+          context: slack-secrets
+      - build-backend:
+          context: slack-secrets
       - test-frontend:
+          context: slack-secrets
           requires: [build-frontend]
       - test-backend:
+          context: slack-secrets
           requires: [build-backend]
       - scan-backend:
+          context: slack-secrets
           requires: [build-backend]
       - scan-frontend:
+          context: slack-secrets
           requires: [build-frontend]
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
