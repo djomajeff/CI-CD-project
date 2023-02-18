@@ -116,7 +116,11 @@ jobs:
           command: |
             cd frontend
             npm install
-            npm audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm update json5 --depth 3
+            npm update loader-utils --depth 2
+            npm update minimist --depth 4
+            npm update js-yaml --depth 4
             npm audit --audit-level=critical
       - slack/notify:
           event: fail
@@ -134,7 +138,9 @@ jobs:
           command: |
             cd backend
             npm install
-            npm audit fix --force
+            npm update mkdirp --depth 2
+            npm update path-parse --depth 3
+            npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
       - slack/notify:
           event: fail
