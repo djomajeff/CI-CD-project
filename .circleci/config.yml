@@ -180,11 +180,11 @@ jobs:
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
             echo "$BACKEND_IP" >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt > ~/project/.circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt > ~/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/ansible/inventory.txt
+            - inventory.txt
 
   configure-infrastructure:
     docker:
@@ -209,7 +209,7 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-      # Here's where you will add some code to rollback on failure
+      - destroy_environment
 
   run-migrations:
     docker:
@@ -334,7 +334,7 @@ cleanup:
   docker:
     # Docker image here
   steps:
-    # Checkout code from git
+    - checkout
     - run:
         name: Get old stack workflow id
         command: |
