@@ -155,7 +155,7 @@ jobs:
       - run:
           name: Install tar and gzip
           command: |
-            yum install tar gzip
+            sudo apt install tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -176,35 +176,40 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             echo [web] > .circleci/ansible/inventory.txt
-            aws ec2 describe-instances \
+            export EC2PublicIP=$(aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --output text >> .circleci/ansible/inventory.txt
+              --output text)
+            echo "$EC2PublicIP" >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt > ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure
 
-  # configure-infrastructure:
-  #   docker:
-  #     # Docker image here that supports Ansible
-  #   steps:
-  #     # Checkout code from git
-  #     # Add ssh keys with fingerprint
-  #     # attach workspace
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     - run:
-  #         name: Configure server
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     # Here's where you will add some code to rollback on failure
+  configure-infrastructure:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - 0f:04:5b:3c:4f:4d:b4:f5:0d:32:57:85:ee:af:db:72
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt update && \
+            sudo apt install software-properties-common && \
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible
+      - run:
+          name: Configure server
+          command: |
+            # Your code here
+            exit 1
+      # Here's where you will add some code to rollback on failure
 
   # run-migrations:
   #   docker:
