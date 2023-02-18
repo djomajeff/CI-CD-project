@@ -179,6 +179,7 @@ jobs:
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
+            echo "Public IP: $BACKEND_IP"
             echo "$BACKEND_IP" >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt > ~/inventory.txt
       - persist_to_workspace:
@@ -209,7 +210,8 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-      - destroy_environment
+      # - destroy_environment dont forget to pass argument
+      # Here's where you will add some code to rollback on failure
 
   run-migrations:
     docker:
@@ -370,9 +372,9 @@ workflows:
           requires: [build-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          # filters:
-          #   branches:
-          #     only: [master]
+          filters:
+            branches:
+              only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
