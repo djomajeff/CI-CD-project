@@ -150,7 +150,7 @@ TYPEORM_HOST=localhost
 TYPEORM_PORT=5432
 TYPEORM_USERNAME=postgres
 TYPEORM_PASSWORD=password
-TYPEORM_DATABASE=glee2
+TYPEORM_DATABASE=udapeople-prod
 TYPEORM_MIGRATIONS=./src/migrations/*.ts
 TYPEORM_ENTITIES=./src/modules/**/*.entity.ts
 ```
