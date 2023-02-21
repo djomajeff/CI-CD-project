@@ -240,13 +240,22 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install dependencies
+          name: Install aws
+          command: |
+            sudo apt install awscli
+
+      - run:
+          name: Install zip dependencies
+          command: |
+            sudo apt install tar gzip
+
+      - run:
+          name: Install Ansible
           command: |
             sudo apt update 
-            sudo apt install software-properties-common 
-            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt-add-repository ppa:ansible/ansible
             sudo apt install ansible
-            sudo apt install tar gzip awscli
+
       - run:
           name: Get backend url
           command: |
@@ -278,14 +287,24 @@ jobs:
             - 0f:04:5b:3c:4f:4d:b4:f5:0d:32:57:85:ee:af:db:72
       - attach_workspace:
           at: ~/
+
       - run:
-          name: Install dependencies
+          name: Install zip dependencies
           command: |
-            sudo apt update 
-            sudo apt install software-properties-common 
-            sudo add-apt-repository --yes --update ppa:ansible/ansible
-            sudo apt install ansible
-            sudo apt install tar gzip awscli
+            sudo apt install tar gzip curl
+
+      - run:
+          name: Install Python3 & Ansible
+          command: |
+            curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+            python3 get-pip.py --user
+            python3 -m pip install --user ansible
+
+      - run:
+          name: Install aws
+          command: |
+            sudo apt install awscli
+
       - run:
           name: Deploy backend
           command: |
