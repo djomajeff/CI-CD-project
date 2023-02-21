@@ -248,9 +248,10 @@ jobs:
       - run:
           name: Install Ansible
           command: |
-            sudo apt update 
-            sudo apt-add-repository ppa:ansible/ansible
-            sudo apt install ansible
+            sudo apt-get update
+            sudo apt-get -y install python3-pip
+            pip --version
+            pip install --user ansible
 
       - run:
           name: Install aws
@@ -306,10 +307,10 @@ jobs:
       - run:
           name: Install Ansible
           command: |
-            sudo apt install software-properties-common
-            sudo add-apt-repository --yes --update ppa:ansible/ansible
-            sudo apt install ansible
-            sudo apt install tar gzip awscli
+            sudo apt-get update
+            sudo apt-get -y install python3-pip
+            pip --version
+            pip3 install --user ansible
 
       - run:
           name: Deploy backend
@@ -333,7 +334,11 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add curl awscli
+            apk add curl
+            curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+            unzip awscliv2.zip
+            sudo ./aws/install
+
       - run:
           name: Get backend url
           command: |
