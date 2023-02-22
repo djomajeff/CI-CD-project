@@ -239,26 +239,22 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-
       - run:
           name: Install zip dependencies
           command: |
             sudo apt install tar gzip
 
       - run:
-          name: Install Ansible
+          name: Install Python3
           command: |
-            sudo apt-get update
             sudo apt-get -y install python3-pip
-            pip --version
-            pip install --user ansible
+            sudo apt-get -y install python3
 
       - run:
-          name: Install aws
+          name: Install aws & ansible
           command: |
-            curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
-            unzip awscliv2.zip
-            sudo ./aws/install
+            python3 -m pip install --user ansible
+            python3 -m pip install awscli
 
       - run:
           name: Get backend url
@@ -271,6 +267,7 @@ jobs:
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
+
       - run:
           name: Deploy frontend objects
           command: |
@@ -291,27 +288,20 @@ jobs:
             - 0f:04:5b:3c:4f:4d:b4:f5:0d:32:57:85:ee:af:db:72
       - attach_workspace:
           at: ~/
-
       - run:
           name: Install zip dependencies
           command: |
-            sudo apt install tar gzip curl
-
+            sudo apt install tar gzip
       - run:
-          name: Install aws
+          name: Install Python3
           command: |
-            curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
-            unzip awscliv2.zip
-            sudo ./aws/install
-
-      - run:
-          name: Install Ansible
-          command: |
-            sudo apt-get update
             sudo apt-get -y install python3-pip
-            pip --version
-            pip3 install --user ansible
-
+            sudo apt-get -y install python3
+      - run:
+          name: Install aws & ansible
+          command: |
+            python3 -m pip install --user ansible
+            python3 -m pip install awscli
       - run:
           name: Deploy backend
           command: |
@@ -330,14 +320,13 @@ jobs:
     docker:
       - image: alpine:3.14
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
-            apk add curl
-            curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
-            unzip awscliv2.zip
-            sudo ./aws/install
+            apk add curl python3 py3-pip
+            python3 -m pip install awscli
+            python3 -m pip install awscli
 
       - run:
           name: Get backend url
