@@ -1,10 +1,14 @@
 ---
+- name: unarchive
+  become: true
+  shell: |
+    tar -xvzf ~/project/.circleci/ansible/deploy/files/artifact.tar.gz -C ~/backend-app
+    cd ~/backend-app
+    ls
+
 - name: start web server
   become: true
   shell: |
-    tar -xvzf ~/project/.circleci/ansible/deploy/files/artifact.tar.gz
-    echo "content of main.js ---"
-    cat ./dist/main.js
-    npm install
+    cd ~/backend-app/dist
     pm2 stop default
-    pm2 start ./dist/main.js -f
+    pm2 start main.js -f
