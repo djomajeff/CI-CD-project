@@ -294,13 +294,14 @@ jobs:
       - run:
           name: Install Python3
           command: |
-            sudo apt-get -y install python3-pip
-            sudo apt-get -y install python3
+            sudo apt-get update -y
+            sudo apt-get -y install python3.11-pip
+            sudo apt-get -y install python3.11
       - run:
           name: Install aws & ansible
           command: |
-            python3 -m pip install --user ansible
-            python3 -m pip install awscli
+            python3.11 -m pip install --user ansible
+            python3.11 -m pip install awscli
       - run:
           name: Deploy backend
           command: |

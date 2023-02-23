@@ -17,12 +17,14 @@
     update_cache: true
 
 - name: install pm2
+  become: true
   npm:
     name: pm2
     global: true
     production: yes
 
 - name: start web server
+  become: true
   shell: |
     tar -xvzf ~/project/.circleci/ansible/deploy/files/artifact.tar.gz
     npm install
