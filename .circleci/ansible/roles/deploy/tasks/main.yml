@@ -1,26 +1,21 @@
 ---
-- name: Copy files
-  become: true
-  copy:
+- name: Creates backend app directory
+  file:
+    path: ~/backend-app
+    state: directory
+
+- name: Unarchive backend files
+  unarchive:
     src: ~/project/.circleci/ansible/deploy/files/artifact.tar.gz
-    dest: /home/ubuntu/artifact.tar.gz
+    dest: ~/backend-app
 
-- name: Unarchive
-  become: true
+- name: Executing Node app with PM2
   shell: |
-    cd /home/ubuntu
-    tar -xvzf artifact.tar.gz
-
-- name: start web server
-  become: true
-  shell: |
-    npm install
+    cd ~/backend-app/dist
     pm2 stop default
-    pm2 start npm -- start
+    pm2 start main.js
+  register: execute_node
 
-# - name: start web server
-#   become: true
-#   shell: |
-#     cd ~/backend-app/dist
-#     pm2 stop default
-#     pm2 start main.js -f
+- name: print message
+  debug:
+    msg: "{{ execute_node.stdout_lines }}"
