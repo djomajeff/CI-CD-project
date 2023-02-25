@@ -4,7 +4,7 @@ orbs:
   slack: circleci/slack@4.12.1
 
 commands:
-  destroy_environment:
+  destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
       workflowID:
@@ -16,26 +16,26 @@ commands:
           when: on_fail
           command: |
             aws cloudformation delete-stack --stack-name udapeople-backend-<<parameters.workflowID>>
+            aws s3 rm s3://udapeople-<<parameters.Workflow_ID>> --recursive
             aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.workflowID>>
 
-#   revert-migrations:
-#     description: Revert the last migration if successfully run in the current workflow.
-#     parameters:
-#       # Add parameter here
-#     steps:
-#       - run:
-#           name: Revert migrations
-#           # Add when this will run
-#           command: |
-#             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-#             SUCCESS = 1
-#             if(( $SUCCESS==1 ));
-#             then
-#             #  cd ~/project/backend
-#             #  npm install
-#             #  Add revert code here. You can find this in the Getting Started section.
-#               exit 1
-#             fi
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      workflow_id:
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7}
+    steps:
+      - run:
+          name: Revert migrations
+          command: |
+            SUCCESS = $(curl --insecure  https://kvdb.io/BpxeYYpYGnYHD6esR9g6Sx/migration_<< parameters.workflow_id >>)
+            if(( $SUCCESS==1 ));
+            then
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
+            fi
 
 jobs:
   build-frontend:
@@ -232,7 +232,8 @@ jobs:
             then
                 curl https://kvdb.io/BpxeYYpYGnYHD6esR9g6Sx/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-      # Here's where you will add some code to rollback on failure
+      - revert-migrations
+      - destroy-environment
 
   deploy-frontend:
     docker:
@@ -276,33 +277,41 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-      # Here's where you will add some code to rollback on failure
+
+      - revert-migrations
+      - destroy-environment
 
   deploy-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+
       - add_ssh_keys:
           fingerprints:
             - 0f:04:5b:3c:4f:4d:b4:f5:0d:32:57:85:ee:af:db:72
+
       - attach_workspace:
           at: ~/
+
       - run:
           name: Install zip dependencies
           command: |
             sudo apt install tar gzip
+
       - run:
           name: Install Python3
           command: |
             sudo apt-get update -y
             sudo apt-get -y install python3-pip
             sudo apt-get -y install python3
+
       - run:
           name: Install aws & ansible
           command: |
             python3 -m pip install --user ansible
             python3 -m pip install awscli
+
       - run:
           name: Package backend
           command: |
@@ -313,6 +322,7 @@ jobs:
             tar -C backend -czvf artifact.tar.gz .
             mkdir -p ~/project/.circleci/ansible/deploy/files/
             mv artifact.tar.gz ~/project/.circleci/ansible/deploy/files/
+
       - run:
           name: Deploy backend
           command: |
@@ -323,7 +333,9 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
-      # Here's where you will add some code to rollback on failure
+
+      - revert-migrations
+      - destroy-environment
 
   smoke-test:
     docker:
@@ -336,7 +348,6 @@ jobs:
             apk add curl python3 py3-pip
             python3 -m pip install awscli
             python3 -m pip install awscli
-
       - run:
           name: Backend smoke test.
           command: |
@@ -359,12 +370,12 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-                # Change this to 0 after the job fails
-              return 1
+              return 0
             else
               return 1
             fi
-      # Here's where you will add some code to rollback on failure
+      - revert-migrations
+      - destroy-environment
 
   # cloudfront-update:
   #   docker:
@@ -379,7 +390,8 @@ jobs:
   #         name: Update cloudfront distribution
   #         command: |
   #           # your code here
-  #     # Here's where you will add some code to rollback on failure
+  #     - revert-migrations
+  #     - destroy-environment
 
 cleanup:
   docker:
