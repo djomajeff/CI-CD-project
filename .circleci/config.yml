@@ -9,7 +9,7 @@ commands:
     parameters:
       workflowID:
         type: string
-        default: ${CIRCLE_WORKFLOW_ID:0:7}
+        default: "${CIRCLE_WORKFLOW_ID:0:7}"
     steps:
       - run:
           name: Destroy environments
@@ -24,7 +24,7 @@ commands:
     parameters:
       workflowID:
         type: string
-        default: ${CIRCLE_WORKFLOW_ID:0:7}
+        default: "${CIRCLE_WORKFLOW_ID:0:7}"
     steps:
       - run:
           name: Revert migrations
@@ -213,7 +213,6 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
       # - destroy_environment dont forget to pass argument
-      # Here's where you will add some code to rollback on failure
 
   run-migrations:
     docker:
