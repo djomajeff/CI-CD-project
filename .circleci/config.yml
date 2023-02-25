@@ -4,12 +4,18 @@ orbs:
   slack: circleci/slack@4.12.1
 
 commands:
+  notify-on-failure:
+    steps:
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
       workflowID:
         type: string
-        default: "${CIRCLE_WORKFLOW_ID:0:7}"
+        default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
       - run:
           name: Destroy environments
@@ -24,7 +30,7 @@ commands:
     parameters:
       workflowID:
         type: string
-        default: "${CIRCLE_WORKFLOW_ID:0:7}"
+        default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
       - run:
           name: Revert migrations
@@ -52,12 +58,7 @@ jobs:
             cd frontend
             npm install
             npm run build
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-      - slack/notify:
-          event: pass
-          template: basic_success_1
+      - notify-on-failure
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -78,6 +79,7 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+      - notify-on-failure
 
   test-frontend:
     docker:
@@ -92,6 +94,7 @@ jobs:
             cd frontend
             npm install
             npm run test
+      - notify-on-failure
 
   test-backend:
     docker:
@@ -106,6 +109,7 @@ jobs:
             cd backend
             npm install
             npm run test
+      - notify-on-failure
 
   scan-frontend:
     docker:
@@ -125,9 +129,7 @@ jobs:
             npm update minimist --depth 4
             npm update js-yaml --depth 4
             npm audit --audit-level=critical
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+      - notify-on-failure
 
   scan-backend:
     docker:
@@ -145,9 +147,7 @@ jobs:
             npm update path-parse --depth 3
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+      - notify-on-failure
 
   deploy-infrastructure:
     docker:
@@ -187,6 +187,7 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
+      - notify-on-failure
 
   configure-infrastructure:
     docker:
@@ -212,6 +213,8 @@ jobs:
             cd ~/project/.circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
+
+      - notify-on-failure
       # - destroy_environment dont forget to pass argument
 
   run-migrations:
@@ -232,8 +235,10 @@ jobs:
             then
                 curl https://kvdb.io/BpxeYYpYGnYHD6esR9g6Sx/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-      - revert-migrations
-      - destroy-environment
+
+      - notify-on-failure
+      - revert-migrations:
+      - destroy-environment:
 
   deploy-frontend:
     docker:
@@ -278,6 +283,7 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
+      - notify-on-failure
       - destroy-environment
 
   deploy-backend:
@@ -333,6 +339,7 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
 
+      - notify-on-failure
       - revert-migrations
       - destroy-environment
 
@@ -373,6 +380,8 @@ jobs:
             else
               return 1
             fi
+
+      - notify-on-failure
       - revert-migrations
       - destroy-environment
 
@@ -389,6 +398,7 @@ jobs:
   #         name: Update cloudfront distribution
   #         command: |
   #           # your code here
+  # - notify-on-failure
   #     - revert-migrations
   #     - destroy-environment
 
