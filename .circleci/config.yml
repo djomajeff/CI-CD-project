@@ -36,7 +36,7 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS = $(curl --insecure  https://kvdb.io/BpxeYYpYGnYHD6esR9g6Sx/migration_<< parameters.workflowID >>)
+            export SUCCESS=$(curl --insecure  https://kvdb.io/BpxeYYpYGnYHD6esR9g6Sx/migration_<< parameters.workflowID >>)
             if(( $SUCCESS==1 ));
             then
               cd ~/project/backend
@@ -215,7 +215,7 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
 
       - notify-on-failure
-      # - destroy_environment dont forget to pass argument
+      - destroy-environment
 
   run-migrations:
     docker:
@@ -385,22 +385,27 @@ jobs:
       - revert-migrations
       - destroy-environment
 
-  # cloudfront-update:
-  #   docker:
-  #     # Docker image here that supports AWS CLI
-  #   steps:
-  #     # Checkout code from git
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # your code here
-  #     - run:
-  #         name: Update cloudfront distribution
-  #         command: |
-  #           # your code here
-  # - notify-on-failure
-  #     - revert-migrations
-  #     - destroy-environment
+  cloudfront-update:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/cloudfront.yml \
+              --stack-name InitialStack \
+              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
+      - revert-migrations
+      - destroy-environment
 
 cleanup:
   docker:
