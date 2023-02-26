@@ -37,7 +37,7 @@ commands:
           when: on_fail
           command: |
             echo "WorkflowID: << parameters.workflowID >>"
-            SUCCESS=$(curl https://kvdb.io/${KVDB_BUCKET_ID}/migration_<< parameters.workflowID >>)
+            SUCCESS=$(curl --insecure https://kvdb.io/${KVDB_BUCKET_ID}/migration_<< parameters.workflowID >>)
             echo "Success: $SUCCESS"
             if(( $SUCCESS == 1 ));
             then
