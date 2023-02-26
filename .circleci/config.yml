@@ -237,8 +237,8 @@ jobs:
             fi
 
       - notify-on-failure
-      - revert-migrations
       - destroy-environment
+      - revert-migrations
 
   deploy-frontend:
     docker:
