@@ -1,1 +1,2 @@
-https://github.com/djomajeff/CI-CD-project
+URL01: https://github.com/djomajeff/CI-CD-project
+URL02: http://udapeople-dc21d02.s3.amazonaws.com/index.html#/employees
